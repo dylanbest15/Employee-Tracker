@@ -19,6 +19,7 @@ connection.connect(function (err) {
     start();
 });
 
+// ?????????????????????????? SEPERATE CODE INTO MULTIPLE FILES WITH CONSTRUCTOR CLASSES
 // starts application
 function start() {
     inquirer.prompt([
@@ -44,6 +45,7 @@ function start() {
             addRole();
         } else if (answer.start === "add a new employee") {
             addEmployee();
+            // ????????????????????????? JOIN VIEWS INTO ONE FUNCTION
         } else if (answer.start === "view all departments") {
             viewDepartments();
         } else if (answer.start === "view all roles") {
@@ -194,13 +196,79 @@ function addEmployee() {
 // ?????????????????????????????????????????? MANAGER COLUMN NOT JOINING
 // views employees and restarts
 function viewEmployees() {
-    query = "SELECT e.id, e.first_name, e.last_name, r.title, d.name as department, r.salary, " 
-    query += "CONCAT('e.first_name', ' ', 'e.last_name') as manager FROM employee e "; 
+    query = "SELECT e.id, e.first_name, e.last_name, r.title, d.name as department, r.salary, "
+    query += "CONCAT('e.first_name', ' ', 'e.last_name') as manager FROM employee e ";
     query += "INNER JOIN role r ON e.role_id = r.id INNER JOIN department d ON r.department_id = d.id ";
     query += "LEFT JOIN employee m ON e.manager_id = m.id";
     connection.query(query, function (err, res) {
         if (err) throw err;
         console.table(res);
         start();
+    })
+}
+
+// ?????????????????????????????????????????? MANAGER COLUMN NOT JOINING
+// views roles and restarts
+function viewRoles() {
+    connection.query("SELECT * FROM role", function (err, res) {
+        if (err) throw err;
+        inquirer.prompt([
+            {
+                type: "list",
+                name: "role",
+                message: "Pick a role-",
+                choices: function () {
+                    var roleArray = [];
+                    res.forEach(element => {
+                        roleArray.push(element.title);
+                    })
+                    return roleArray;
+                }
+            }
+        ]).then(function (answer) {
+            query = "SELECT e.id, e.first_name, e.last_name, r.title, d.name as department, r.salary, "
+            query += "CONCAT('e.first_name', ' ', 'e.last_name') as manager FROM employee e ";
+            query += "INNER JOIN role r ON e.role_id = r.id INNER JOIN department d ON r.department_id = d.id ";
+            query += "LEFT JOIN employee m ON e.manager_id = m.id " ;
+            query += "WHERE r.title = ?"
+            connection.query(query, answer.role, function (err, res) {
+                if (err) throw err;
+                console.table(res);
+                start();
+            })
+        })
+    })
+}
+
+// ?????????????????????????????????????????? MANAGER COLUMN NOT JOINING
+// views departments and restarts
+function viewDepartments() {
+    connection.query("SELECT * FROM department", function (err, res) {
+        if (err) throw err;
+        inquirer.prompt([
+            {
+                type: "list",
+                name: "department",
+                message: "Pick a department-",
+                choices: function () {
+                    var departmentArray = [];
+                    res.forEach(element => {
+                        departmentArray.push(element.name);
+                    })
+                    return departmentArray;
+                }
+            }
+        ]).then(function (answer) {
+            query = "SELECT e.id, e.first_name, e.last_name, r.title, d.name as department, r.salary, "
+            query += "CONCAT('e.first_name', ' ', 'e.last_name') as manager FROM employee e ";
+            query += "INNER JOIN role r ON e.role_id = r.id INNER JOIN department d ON r.department_id = d.id ";
+            query += "LEFT JOIN employee m ON e.manager_id = m.id " ;
+            query += "WHERE d.name = ?"
+            connection.query(query, answer.department, function (err, res) {
+                if (err) throw err;
+                console.table(res);
+                start();
+            })
+        })
     })
 }
