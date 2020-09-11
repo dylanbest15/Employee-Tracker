@@ -61,7 +61,7 @@ function addDepartment() {
         {
             type: "input",
             name: "name",
-            message: "Enter the department name."
+            message: "Enter the department's name-"
         }
     ]).then(function (answer) {
         console.log("Adding new department...");
@@ -79,16 +79,17 @@ function addDepartment() {
 // adds role and restarts
 function addRole() {
     connection.query("SELECT * FROM department", function (err, res) {
+        if (err) throw err;
         inquirer.prompt([
             {
                 type: "input",
                 name: "title",
-                message: "Enter the role title."
+                message: "Enter the role's title-"
             },
             {
                 type: "input",
                 name: "salary",
-                message: "Enter the role salary.",
+                message: "Enter the role's salary-",
                 validate: function (value) {
                     if (isNaN(value)) {
                         return false;
@@ -99,10 +100,9 @@ function addRole() {
             {
                 type: "list",
                 name: "department",
-                message: "Choose the role department",
+                message: "Choose the role's department-",
                 choices: function () {
                     var departmentArray = [];
-                    if (err) throw err;
                     res.forEach(element => {
                         departmentArray.push(element.name);
                     })
@@ -111,7 +111,7 @@ function addRole() {
             }
         ]).then(function (answer) {
             console.log("Adding new role...");
-            var query = "INSERT INTO role SET title = ?, salary = ?,";
+            var query = "INSERT INTO role SET title = ?, salary = ?, ";
             query += "department_id = (SELECT id FROM department WHERE name = ?)";
             connection.query(query,
                 [answer.title, answer.salary, answer.department],
@@ -121,6 +121,67 @@ function addRole() {
                     start();
                 }
             )
+        })
+    })
+}
+
+function addEmployee() {
+    connection.query("SELECT * FROM role", function (roleErr, roleRes) {
+        if (roleErr) throw roleErr;
+        connection.query("SELECT * FROM employee", function (employeeErr, employeeRes) {
+            if (employeeErr) throw employeeErr;
+            inquirer.prompt([
+                {
+                    type: "input",
+                    name: "firstName",
+                    message: "Enter the employee's first name-"
+                },
+                {
+                    type: "input",
+                    name: "lastName",
+                    message: "Enter the employee's last name-"
+                },
+                {
+                    type: "list",
+                    name: "role",
+                    message: "Choose the employee's role-",
+                    choices: function () {
+                        var roleArray = [];
+                        roleRes.forEach(element => {
+                            roleArray.push(element.title);
+                        })
+                        return roleArray;
+                    }
+                },
+                {
+                    type: "list",
+                    name: "manager",
+                    message: "Choose the employee's manager-",
+                    choices: function () {
+                        var employeeArray = ["No Manager"];
+                        employeeRes.forEach(element => {
+                            employeeArray.push(`${element.first_name} ${element.last_name}`);
+                        })
+                        return employeeArray;
+                    }
+                }
+            ]).then(function (answer) {
+                console.log("Adding new employee...");
+                var firstName = answer.manager.trim().split(" ")[0];
+                var lastName = answer.manager.trim().split(" ")[1];
+                var query = "INSERT INTO employee SET first_name = ?, last_name = ?, ";
+                query += "role_id = (SELECT id FROM role WHERE title = ?, ";
+                query += "manager_id = (SELECT id FROM employee WHERE ";
+                query += "first_name = ? AND last_name = ?)";
+                connection.query(query,
+                    [answer.firstName, answer.lastName, answer.role, firstName, lastName],
+                    function (err, res) {
+                        if (err) throw err;
+                        console.log("New employee added succesfully!");
+                        start();
+                    }
+                )
+            })
         })
     })
 }
