@@ -76,6 +76,7 @@ function addDepartment() {
     })
 }
 
+// adds role and restarts
 function addRole() {
     connection.query("SELECT * FROM department", function (err, res) {
         inquirer.prompt([
@@ -112,7 +113,9 @@ function addRole() {
             console.log("Adding new role...");
             var query = "INSERT INTO role SET title = ?, salary = ?,";
             query += "department_id = (SELECT id FROM department WHERE name = ?)";
-            connection.query(query, [answer.title, answer.salary, answer.department ], function (err, res) {
+            connection.query(query,
+                [answer.title, answer.salary, answer.department],
+                function (err, res) {
                     if (err) throw err;
                     console.log("New role added successfully!");
                     start();
