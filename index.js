@@ -177,7 +177,7 @@ function addEmployee() {
                 var firstName = answer.manager.trim().split(" ")[0];
                 var lastName = answer.manager.trim().split(" ")[1];
                 var query = "INSERT INTO employee SET first_name = ?, last_name = ?, ";
-                query += "role_id = (SELECT id FROM role WHERE title = ?, ";
+                query += "role_id = (SELECT id FROM role WHERE title = ?), ";
                 query += "manager_id = (SELECT id FROM employee WHERE ";
                 query += "first_name = ? AND last_name = ?)";
                 connection.query(query,
@@ -229,7 +229,7 @@ function viewRoles() {
             query = "SELECT e.id, e.first_name, e.last_name, r.title, d.name as department, r.salary, "
             query += "CONCAT('e.first_name', ' ', 'e.last_name') as manager FROM employee e ";
             query += "INNER JOIN role r ON e.role_id = r.id INNER JOIN department d ON r.department_id = d.id ";
-            query += "LEFT JOIN employee m ON e.manager_id = m.id " ;
+            query += "LEFT JOIN employee m ON e.manager_id = m.id ";
             query += "WHERE r.title = ?"
             connection.query(query, answer.role, function (err, res) {
                 if (err) throw err;
@@ -262,12 +262,57 @@ function viewDepartments() {
             query = "SELECT e.id, e.first_name, e.last_name, r.title, d.name as department, r.salary, "
             query += "CONCAT('e.first_name', ' ', 'e.last_name') as manager FROM employee e ";
             query += "INNER JOIN role r ON e.role_id = r.id INNER JOIN department d ON r.department_id = d.id ";
-            query += "LEFT JOIN employee m ON e.manager_id = m.id " ;
+            query += "LEFT JOIN employee m ON e.manager_id = m.id ";
             query += "WHERE d.name = ?"
             connection.query(query, answer.department, function (err, res) {
                 if (err) throw err;
                 console.table(res);
                 start();
+            })
+        })
+    })
+}
+
+// ?????????????????????? SAYS WORKING BUT NOT UPDATING EMPLOYEE ROLE
+// updates employee role and restarts
+function updateEmployeeRoles() {
+    connection.query("SELECT * FROM employee", function (employeeErr, employeeRes) {
+        if (employeeErr) throw employeeRrr;
+        connection.query("SELECT * FROM role", function (roleErr, roleRes) {
+            if (roleErr) throw roleErr;
+            inquirer.prompt([
+                {
+                    type: "list",
+                    name: "employee",
+                    message: "Choose an employee-",
+                    choices: function () {
+                        var employeeArray = [];
+                        employeeRes.forEach(element => {
+                            employeeArray.push(`${element.first_name} ${element.last_name}`);
+                        })
+                        return employeeArray;
+                    }
+                },
+                {
+                    type: "list",
+                    name: "role",
+                    message: "Choose a role-",
+                    choices: function () {
+                        var roleArray = [];
+                        roleRes.forEach(element => {
+                            roleArray.push(element.title);
+                        })
+                        return roleArray;
+                    }
+                }
+            ]).then(function (answer) {
+                query = "UPDATE employee SET role_id = (SELECT id FROM role WHERE title = ?) ";
+                query += "WHERE CONCAT('first_name', ' ', 'last_name') = ?";
+                connection.query(query, [answer.role, answer.employee], function (err, res) {
+                    if (err) throw err;
+                    console.log("Employee role updated successfully!");
+                    start();
+                })
             })
         })
     })
