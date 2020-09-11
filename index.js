@@ -33,7 +33,8 @@ function start() {
                 "view all departments",
                 "view all roles",
                 "view all employees",
-                "update employee roles"
+                "update employee roles",
+                "exit employee tracker"
             ]
         }
     ]).then(function (answer) {
@@ -49,8 +50,10 @@ function start() {
             viewRoles();
         } else if (answer.start === "view all employees") {
             viewEmployees();
-        } else {
+        } else if (answer.start === "update employee roles") {
             updateEmployeeRoles();
+        } else {
+            connection.end();
         }
     })
 }
@@ -125,6 +128,8 @@ function addRole() {
     })
 }
 
+// ???????????????????????????????? EMPLOYEE NOT BEING ADDED
+// adds employee and restarts
 function addEmployee() {
     connection.query("SELECT * FROM role", function (roleErr, roleRes) {
         if (roleErr) throw roleErr;
@@ -183,5 +188,19 @@ function addEmployee() {
                 )
             })
         })
+    })
+}
+
+// ?????????????????????????????????????????? MANAGER COLUMN NOT JOINING
+// views employees and restarts
+function viewEmployees() {
+    query = "SELECT e.id, e.first_name, e.last_name, r.title, d.name as department, r.salary, " 
+    query += "CONCAT('e.first_name', ' ', 'e.last_name') as manager FROM employee e "; 
+    query += "INNER JOIN role r ON e.role_id = r.id INNER JOIN department d ON r.department_id = d.id ";
+    query += "LEFT JOIN employee m ON e.manager_id = m.id";
+    connection.query(query, function (err, res) {
+        if (err) throw err;
+        console.table(res);
+        start();
     })
 }
