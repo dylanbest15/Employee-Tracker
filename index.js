@@ -223,3 +223,5 @@ function updateRoles() {
         })
     })
 }
+
+start();
