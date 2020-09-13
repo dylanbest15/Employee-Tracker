@@ -32,7 +32,7 @@ function start() {
         } else if (answer.start === "view all roles") {
             viewRoles();
         } else if (answer.start === "view all employees") {
-            viewEmployees();
+            orm.viewEmployees();
         } else if (answer.start === "update employee roles") {
             updateRoles();
         } else {
@@ -87,7 +87,7 @@ function addRole() {
                 }
             }
         ]).then(function ({ title, salary, department } = answer) {
-            insertIntoRole(title, salary, department);
+            orm.insertIntoRole(title, salary, department);
         })
     })
 }
@@ -134,7 +134,7 @@ function addEmployee() {
                     }
                 }
             ]).then(function ({ firstName, lastName, role, manager } = answer) {
-                insertIntoEmployee(firstName, lastName, role, manager);
+                orm.insertIntoEmployee(firstName, lastName, role, manager);
             })
         })
     })
@@ -158,7 +158,7 @@ function viewRoles() {
                 }
             }
         ]).then(function ({ role } = answer) {
-            viewEmployees("r.title", role);
+            orm.viewEmployeesWhere("r.title", role);
         })
     })
 }
@@ -181,7 +181,7 @@ function viewDepartments() {
                 }
             }
         ]).then(function ({ department } = answer) {
-            viewEmployees("d.name", department);
+            orm.viewEmployeesWhere("d.name", department);
         })
     })
 }
@@ -218,7 +218,7 @@ function updateRoles() {
                     }
                 }
             ]).then(function ({ employee, role } = answer) {
-                updateEmployeeRole(role, employee);
+                orm.updateEmployeeRole(role, employee);
             })
         })
     })

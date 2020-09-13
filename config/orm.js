@@ -58,4 +58,4 @@ const orm = {
 }
 
 // export orm
-module.eports = orm;
+module.exports = orm;
