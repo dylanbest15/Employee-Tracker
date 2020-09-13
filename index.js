@@ -1,7 +1,7 @@
 // requirements
-const mysql = require("mysql");
 const inquirer = require("inquirer");
 const cTable = require("console.table");
+
 
 // connect to server
 var connection = mysql.createConnection({
