@@ -1,6 +1,8 @@
 // requirements
 const orm = require("./config/orm.js");
+const connection = require("./config/connection.js");
 const inquirer = require("inquirer");
+const cTable = require("console.table");
 
 // starts application
 function start() {
@@ -20,25 +22,31 @@ function start() {
                 "exit employee tracker"
             ]
         }
-    ]).then(function (answer) {
-        if (answer.start === "add a new department") {
-            addDepartment();
-        } else if (answer.start === "add a new role") {
-            addRole();
-        } else if (answer.start === "add a new employee") {
-            addEmployee();
-        } else if (answer.start === "view all departments") {
-            viewDepartments();
-        } else if (answer.start === "view all roles") {
-            viewRoles();
-        } else if (answer.start === "view all employees") {
-            orm.viewEmployees();
-        } else if (answer.start === "update employee roles") {
-            updateRoles();
-        } else {
-            connection.end();
+    ]).then(function ({ start } = answer) {
+        switch (start) {
+            case "add a new department":
+                addDepartment();
+                break;
+            case "add a new role":
+                addRole();
+                break;
+            case "add a new employee":
+                addEmployee();
+                break;
+            case "view all departments":
+                viewDepartments();
+                break;
+            case "view all roles":
+                viewRoles();
+                break;
+            case "view all employees":
+                viewEmployees();
+                break;
+            case "update employee roles":
+                updateRoles();
+                break;
+            default: connection.end();
         }
-        start();
     })
 }
 
@@ -50,7 +58,10 @@ function addDepartment() {
             message: "Enter the department's name-"
         }
     ]).then(function ({ name } = answer) {
-        insertIntoDepartment(name);
+        return orm.insertIntoDepartment(name);
+    }).then(function (res) {
+        if (res.affectedRows === 1) console.log("Success!");
+        start();
     })
 }
 
@@ -78,16 +89,13 @@ function addRole() {
                 type: "list",
                 name: "department",
                 message: "Choose the role's department-",
-                choices: function () {
-                    var departmentArray = [];
-                    res.forEach(element => {
-                        departmentArray.push(element.name);
-                    })
-                    return departmentArray;
-                }
+                choices: () => res.map(element => element.name)
             }
         ]).then(function ({ title, salary, department } = answer) {
-            orm.insertIntoRole(title, salary, department);
+            return orm.insertIntoRole(title, salary, department);
+        }).then(function (res) {
+            if (res.affectedRows === 1) console.log("Success!");
+            start();
         })
     })
 }
@@ -113,34 +121,30 @@ function addEmployee() {
                     type: "list",
                     name: "role",
                     message: "Choose the employee's role-",
-                    choices: function () {
-                        var roleArray = [];
-                        roleRes.forEach(element => {
-                            roleArray.push(element.title);
-                        })
-                        return roleArray;
-                    }
+                    choices: () => roleRes.map(element => element.title)
                 },
                 {
                     type: "list",
                     name: "manager",
                     message: "Choose the employee's manager-",
                     choices: function () {
-                        var employeeArray = ["No Manager"];
+                        const employeeArray = ["No Manager"];
                         employeeRes.forEach(element => {
                             employeeArray.push(`${element.first_name} ${element.last_name}`);
                         })
                         return employeeArray;
-                    }
+                    } 
                 }
             ]).then(function ({ firstName, lastName, role, manager } = answer) {
-                orm.insertIntoEmployee(firstName, lastName, role, manager);
+                return orm.insertIntoEmployee(firstName, lastName, role, manager);
+            }).then(function (res) {
+                if (res.affectedRows === 1) console.log("Success!");
+                start();
             })
         })
     })
 }
 
-// ?????????????????????????????????????????? MANAGER COLUMN NOT JOINING
 function viewRoles() {
     connection.query("SELECT * FROM role", function (err, res) {
         if (err) throw err;
@@ -149,21 +153,17 @@ function viewRoles() {
                 type: "list",
                 name: "role",
                 message: "Pick a role-",
-                choices: function () {
-                    var roleArray = [];
-                    res.forEach(element => {
-                        roleArray.push(element.title);
-                    })
-                    return roleArray;
-                }
+                choices: () => res.map(element => element.title)
             }
         ]).then(function ({ role } = answer) {
-            orm.viewEmployeesWhere("r.title", role);
+            return orm.viewEmployeesWhere("r.title", role);
+        }).then(function (res) {
+            console.table("\n", res);
+            start();
         })
     })
 }
 
-// ?????????????????????????????????????????? MANAGER COLUMN NOT JOINING
 function viewDepartments() {
     connection.query("SELECT * FROM department", function (err, res) {
         if (err) throw err;
@@ -172,21 +172,24 @@ function viewDepartments() {
                 type: "list",
                 name: "department",
                 message: "Pick a department-",
-                choices: function () {
-                    var departmentArray = [];
-                    res.forEach(element => {
-                        departmentArray.push(element.name);
-                    })
-                    return departmentArray;
-                }
+                choices: () => res.map(element => element.name)
             }
         ]).then(function ({ department } = answer) {
-            orm.viewEmployeesWhere("d.name", department);
+            return orm.viewEmployeesWhere("d.name", department);
+        }).then(function (res) {
+            console.table("\n", res);
+            start();
         })
     })
 }
 
-// ?????????????????????? SAYS WORKING BUT NOT UPDATING EMPLOYEE ROLE
+function viewEmployees() {
+    return orm.viewEmployees().then(function (res) {
+        console.table("\n", res);
+        start();
+    })
+}
+
 function updateRoles() {
     connection.query("SELECT * FROM employee", function (employeeErr, employeeRes) {
         if (employeeErr) throw employeeRrr;
@@ -197,31 +200,26 @@ function updateRoles() {
                     type: "list",
                     name: "employee",
                     message: "Choose an employee-",
-                    choices: function () {
-                        var employeeArray = [];
-                        employeeRes.forEach(element => {
-                            employeeArray.push(`${element.first_name} ${element.last_name}`);
-                        })
-                        return employeeArray;
-                    }
+                    choices: () => employeeRes.map(element => `${element.first_name} ${element.last_name}`)
                 },
                 {
                     type: "list",
                     name: "role",
                     message: "Choose a role-",
-                    choices: function () {
-                        var roleArray = [];
-                        roleRes.forEach(element => {
-                            roleArray.push(element.title);
-                        })
-                        return roleArray;
-                    }
+                    choices: () => roleRes.map(element => element.title)
                 }
             ]).then(function ({ employee, role } = answer) {
-                orm.updateEmployeeRole(role, employee);
+                return orm.updateEmployeeRole(role, employee);
+            }).then(function (res) {
+                if (res.affectedRows === 1) console.log("Success!");
+                start();
             })
         })
     })
 }
 
-start();
+connection.connect(function (err) {
+    if (err) throw err;
+    console.log("connected as id " + connection.threadId);
+    start();
+});
