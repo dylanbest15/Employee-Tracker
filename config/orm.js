@@ -1,6 +1,7 @@
 // requirements
 const connection = require("./connection.js");
 
+// helper function for query strings
 function viewAllEmployeesQuery() {
   return `SELECT e.id, e.first_name, e.last_name, r.title, d.name as department, r.salary, 
   CONCAT(e.first_name, ' ', e.last_name) as manager FROM employee e 

@@ -50,6 +50,7 @@ function start() {
     })
 }
 
+// adds new department
 function addDepartment() {
     inquirer.prompt([
         {
@@ -65,6 +66,7 @@ function addDepartment() {
     })
 }
 
+// adds new role w/ department foreign key
 function addRole() {
     connection.query("SELECT * FROM department", function (err, res) {
         if (err) throw err;
@@ -100,7 +102,7 @@ function addRole() {
     })
 }
 
-// ???????????????????????????????? EMPLOYEE NOT BEING ADDED
+// adds new employee w/ role and manager foreign key
 function addEmployee() {
     connection.query("SELECT * FROM role", function (roleErr, roleRes) {
         if (roleErr) throw roleErr;
@@ -145,25 +147,7 @@ function addEmployee() {
     })
 }
 
-function viewRoles() {
-    connection.query("SELECT * FROM role", function (err, res) {
-        if (err) throw err;
-        inquirer.prompt([
-            {
-                type: "list",
-                name: "role",
-                message: "Pick a role-",
-                choices: () => res.map(element => element.title)
-            }
-        ]).then(function ({ role } = answer) {
-            return orm.viewEmployeesWhere("r.title", role);
-        }).then(function (res) {
-            console.table("\n", res);
-            start();
-        })
-    })
-}
-
+// allows user to select department to view employees
 function viewDepartments() {
     connection.query("SELECT * FROM department", function (err, res) {
         if (err) throw err;
@@ -183,6 +167,27 @@ function viewDepartments() {
     })
 }
 
+// allows user to select role to view employees
+function viewRoles() {
+    connection.query("SELECT * FROM role", function (err, res) {
+        if (err) throw err;
+        inquirer.prompt([
+            {
+                type: "list",
+                name: "role",
+                message: "Pick a role-",
+                choices: () => res.map(element => element.title)
+            }
+        ]).then(function ({ role } = answer) {
+            return orm.viewEmployeesWhere("r.title", role);
+        }).then(function (res) {
+            console.table("\n", res);
+            start();
+        })
+    })
+}
+
+// views all employees
 function viewEmployees() {
     return orm.viewEmployees().then(function (res) {
         console.table("\n", res);
@@ -190,6 +195,7 @@ function viewEmployees() {
     })
 }
 
+// allows user to select employee to update role
 function updateRoles() {
     connection.query("SELECT * FROM employee", function (employeeErr, employeeRes) {
         if (employeeErr) throw employeeRrr;
@@ -218,6 +224,7 @@ function updateRoles() {
     })
 }
 
+// runs start on connection
 connection.connect(function (err) {
     if (err) throw err;
     console.log("connected as id " + connection.threadId);
