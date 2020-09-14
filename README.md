@@ -1,5 +1,5 @@
 # Employee-Tracker
-This application allows the user to add to, view, and update a SQL database with three tables: Department, Role, and Employee. The tables consist of employee infomration such as salaries and managers while also including roles and departments foreign keys. Using Node.js, the user can follow Inquirer NPM prompts to display navigate the database and display or alter information. This app utilizies MySQL, Inquirer NPM, and console.table NPM to make the user experience efficient and intuitive.
+This application allows the user to add to, view, and update a SQL database with three tables: Department, Role, and Employee. The tables consist of employee information such as salaries and managers while also including roles and departments as foreign keys. Using Node.js, the user can follow Inquirer NPM prompts to display navigate the database and display or alter information. This app utilizes MySQL, Inquirer NPM, and console.table NPM to make the user experience efficient and intuitive.
 
 ## Built With
 - <a href="https://www.mysql.com/">MySQL</a>
